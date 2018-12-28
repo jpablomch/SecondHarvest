@@ -2,11 +2,11 @@
 import pandas as pd
 import csv
 
-DEBUG = False
+DEBUG = True
 
 dynamic = pd.read_csv("dynamic.csv")
 
-with open('columnsToKeepFromDynamic.csv', 'r') as f:
+with open('Config/columnsToKeepFromDynamic.csv', 'r') as f:
     reader = csv.reader(f, delimiter=',')
     columns_keep_dynamic = list(reader)[0]
     if DEBUG:
@@ -15,10 +15,11 @@ with open('columnsToKeepFromDynamic.csv', 'r') as f:
 # dynamic = dynamic.ix[:, ['Referral Date', 'Referral Time', 'Client Name', 'Phone', 'Cell Phone', 'E-Mail', 'Comm Preference', 'Language', 'Site Name', 'Service Type']]
 dynamic = dynamic.loc[:, columns_keep_dynamic]
 
-with open('removeFromDynamic.csv', 'r') as f:
+with open('Config/removeFromDynamic.csv', 'r') as f:
     reader = csv.reader(f, delimiter=',')
     remove_from_dynamic = list(reader)[0]
     if DEBUG:
+        print("Removed from dynamic: ")
         print(remove_from_dynamic)
 
 # dynamic = dynamic.loc[~dynamic['Service Type'].isin(['CalFresh Application',
@@ -43,6 +44,9 @@ client = None
 table = []
 maxRepeat = 0
 count = 0
+if DEBUG:
+    print("Dynadupli:")
+    print(dynaDupli)
 for index, row in dynaDupli.iterrows():
     if client == row['Client Name']: # Same Row
         table[len(table)-1].append(row['Referral Date'])
@@ -92,12 +96,25 @@ for i in range(len(table)):
         print(i)
     dynamic = dynamic.append(pd.Series(table[i], index=list(headers)), ignore_index=True)
 
-dynamic.loc[len(dynamic)] = table[0]
+# table is empty skip this
+if table:
+    dynamic.loc[len(dynamic)] = table[0]
+    if DEBUG:
+        print(table[0])
 
-if DEBUG:
-    print(table[0])
 
-dynamic.to_csv('result.csv')
-dynaDupli.to_csv('duplicates.csv')
+dynamic['Phone'].replace(regex=True,inplace=True,to_replace=r'\D',value=r'')
+# dynamic['Phone'] = '+1' + dynamic['Phone'].astype(str)
+dynamic['Cell Phone'].replace(regex=True,inplace=True,to_replace=r'\D',value=r'')
+# dynamic['Cell Phone'] = '+1' + dynamic['Cell Phone'].astype(str)
+
+dynamic['Language'].replace('Spanish', 'spa', inplace=True)
+dynamic['Language'].replace('Vietnamese', 'vie', inplace=True)
+dynamic['Language'].replace('Chinese', 'chi', inplace=True)
+dynamic['Language'].replace('Tagalog', 'tgl', inplace=True)
+dynamic['Language'].replace('English', 'eng', inplace=True)
+
+dynamic.to_csv('Results/result.csv')
+dynaDupli.to_csv('Results/duplicates.csv')
 
 print("Done!")

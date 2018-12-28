@@ -2,7 +2,7 @@
 import pandas as pd
 import csv
 
-DEBUG = True
+DEBUG = False # TODO: Read from args.
 
 dynamic = pd.read_csv("dynamic.csv")
 
@@ -12,7 +12,6 @@ with open('Config/columnsToKeepFromDynamic.csv', 'r') as f:
     if DEBUG:
         print(columns_keep_dynamic)
 
-# dynamic = dynamic.ix[:, ['Referral Date', 'Referral Time', 'Client Name', 'Phone', 'Cell Phone', 'E-Mail', 'Comm Preference', 'Language', 'Site Name', 'Service Type']]
 dynamic = dynamic.loc[:, columns_keep_dynamic]
 
 with open('Config/removeFromDynamic.csv', 'r') as f:
@@ -22,13 +21,6 @@ with open('Config/removeFromDynamic.csv', 'r') as f:
         print("Removed from dynamic: ")
         print(remove_from_dynamic)
 
-# dynamic = dynamic.loc[~dynamic['Service Type'].isin(['CalFresh Application',
-#                                                      'CalFresh Prescreen',
-#                                                      'Calfresh Prescreen',
-#                                                      'Calfresh Application',
-#                                                      'Summer Meal',
-#                                                      'Wellness Pantry',
-#                                                      'Soup Kitchen'])]
 dynamic = dynamic.loc[~dynamic['Service Type'].isin(remove_from_dynamic)]
 dynaDupli = dynamic[dynamic.duplicated(['Client Name'], keep=False)]
 
@@ -61,16 +53,6 @@ for index, row in dynaDupli.iterrows():
         for i in columns_keep_dynamic:
             toApend.append(row[i])
         table.append(toApend)
-        # table.append([row['Referral Date'],
-        #               row['Referral Time'],
-        #               row['Client Name'],
-        #               row['Phone'],
-        #               row['Cell Phone'],
-        #               row['E-Mail'],
-        #               row['Comm Preference'],
-        #               row['Language'],
-        #               row['Site Name'],
-        #               row['Service Type']])
         count = 0
     client = row['Client Name']
 
